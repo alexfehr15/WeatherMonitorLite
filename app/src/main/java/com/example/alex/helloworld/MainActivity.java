@@ -66,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     // Anvil Weather Underground API key (Jess)
     private static final String apiKeyTwo = "578e3c16e28c043a";
 
+    // Anvil Weather Underground API Key (Alex - bucket)
+    private static final String apiKeyThree = "50ad2fd8d9651127";
+
     // List of API keys
     private List<APIKey> apiKeys = new ArrayList<APIKey>();
 
@@ -108,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         // Set up API keys
         apiKeys.add(0, new APIKey(apiKeyOne));
         apiKeys.add(1, new APIKey(apiKeyTwo));
-
+        apiKeys.add(2, new APIKey(apiKeyThree));
 
         // Set up Spinner
         spinner = (Spinner) findViewById(R.id.day_spinner);
