@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Weather Monitor Simple</string>
+    <string-array name="spinner_choices">
+        <item>Today</item>
+        <item>Yesterday</item>
+    </string-array>
+</resources>
