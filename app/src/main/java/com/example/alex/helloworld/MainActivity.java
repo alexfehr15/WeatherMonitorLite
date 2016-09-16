@@ -60,8 +60,17 @@ public class MainActivity extends AppCompatActivity {
     // XPath instance
     private XPath xPath = XPathFactory.newInstance().newXPath();
 
-    // Anvil Weather Underground API key
-    private static final String apiKey = "1973b8c26086ac10";
+    // Anvil Weather Underground API key (Alex)
+    private static final String apiKeyOne = "1973b8c26086ac10";
+
+    // Anvil Weather Underground API key (Jess)
+    private static final String apiKeyTwo = "578e3c16e28c043a";
+
+    // List of API keys
+    private List<APIKey> apiKeys = new ArrayList<APIKey>();
+
+    // Current API key index
+    private int currentKeyIndex = 0;
 
     // All sites
     private static final String [] sitesAll = { "Kmdsilve4", "Kmieastl10", "Kmdgaith12", "Kmdgerma14", "Kmdfrede39",
@@ -72,12 +81,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Sites subset used for testing
     private static final String [] sitesSubset = { "KFLORLAN65" };
-
-    // Number of queries made before resetting
-    private int numQueries = 0;
-
-    // Milliseconds from epoch of last query time
-    private long lastQueryTime = Long.MAX_VALUE;
 
     // Base query used when query is about today's conditions
     private static final String TODAY_BASE_QUERY = "http://api.wunderground.com/api/{0}/conditions/q/pws:{1}.xml";
@@ -101,6 +104,11 @@ public class MainActivity extends AppCompatActivity {
         // Display the main UI when created
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Set up API keys
+        apiKeys.add(0, new APIKey(apiKeyOne));
+        apiKeys.add(1, new APIKey(apiKeyTwo));
+
 
         // Set up Spinner
         spinner = (Spinner) findViewById(R.id.day_spinner);
@@ -229,23 +237,37 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected List<Site> doInBackground(Void... arg0) {
             List<Site> sites = new ArrayList<Site>();
-            for (String site : sitesSubset) {
+            for (String site : sitesAll) {
                 // Pause execution for a minute once we reach 10 queries.
                 // Weather Underground does not allow more than 10 queries in a minute
                 try{
-                    long timeDifferenceBetweenQueries = System.currentTimeMillis();
-                    if (timeDifferenceBetweenQueries < SECONDS_IN_A_MINUTE && numQueries >= MAX_QUERIES_IN_A_MINUTE){
-                        // Pause thread execution for one minute
-                        Log.d("BEGINNING SLEEP", Integer.toString(numQueries));
-                        Thread.sleep(SECONDS_IN_A_MINUTE);
-                        Log.d("FINISHED SLEEPING", Integer.toString(numQueries));
+                    long timeDifferenceBetweenQueries = System.currentTimeMillis() - apiKeys.get(currentKeyIndex).LastQueryTimeMilliseconds;
+                    if (timeDifferenceBetweenQueries < SECONDS_IN_A_MINUTE &&
+                            apiKeys.get(currentKeyIndex).NumQueries >= MAX_QUERIES_IN_A_MINUTE){
+                        Boolean sleep = true;
+                        for (int i = 0; i < apiKeys.size(); ++i){
+                            if (System.currentTimeMillis() - apiKeys.get(i).LastQueryTimeMilliseconds >= SECONDS_IN_A_MINUTE ||
+                                    apiKeys.get(i).NumQueries < MAX_QUERIES_IN_A_MINUTE){
+                                sleep = false;
+                                currentKeyIndex = i;
+                            }
+                        }
 
-                        // Reset the number of queries
-                        numQueries = 0;
+                        if (sleep){
+                            // Pause thread execution for one minute
+                            Log.d("BEGINNING SLEEP", apiKeys.get(currentKeyIndex).APIKey);
+                            Thread.sleep(SECONDS_IN_A_MINUTE);
+                            Log.d("FINISHED SLEEPING", apiKeys.get(currentKeyIndex).APIKey);
+
+                            // Reset the number of queries for each API key
+                            for (APIKey key : apiKeys) {
+                                key.NumQueries = 0;
+                            }
+                        }
                     }
                     else if (timeDifferenceBetweenQueries >= SECONDS_IN_A_MINUTE){
-                        // Reset the number of queries
-                        numQueries = 0;
+                        // Reset the number of queries for the current API key
+                        apiKeys.get(currentKeyIndex).NumQueries = 0;
                     }
                 }
                 catch (InterruptedException e){
@@ -254,19 +276,19 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Query the weather underground for site information. Increment counter
-                Log.d("NUMQUERIESBEFOREQUERY", Integer.toString(numQueries));
+                Log.d("NUMQUERIESBEFOREQUERY", Integer.toString(apiKeys.get(currentKeyIndex).NumQueries));
                 String qResult = "";
                 if (queryDate.equals("Yesterday")) {
-                    qResult = QuerySite(MessageFormat.format(YESTERDAY_BASE_QUERY, apiKey, site));
+                    qResult = QuerySite(MessageFormat.format(YESTERDAY_BASE_QUERY, apiKeyOne, site));
                 }
                 else {
-                    qResult = QuerySite(MessageFormat.format(TODAY_BASE_QUERY, apiKey, site));
+                    qResult = QuerySite(MessageFormat.format(TODAY_BASE_QUERY, apiKeyOne, site));
                 }
 
                 // Update query time. Increment the number of queries
-                lastQueryTime = System.currentTimeMillis();
-                ++numQueries;
-                Log.d("NUMQUERIESAFTERQUERY", Integer.toString(numQueries));
+                apiKeys.get(currentKeyIndex).LastQueryTimeMilliseconds = System.currentTimeMillis();
+                ++apiKeys.get(currentKeyIndex).NumQueries;
+                Log.d("NUMQUERIESAFTERQUERY", Integer.toString(apiKeys.get(currentKeyIndex).NumQueries));
 
                 // Only proceed if site query is valid
                 String precipitation = "unknown";
