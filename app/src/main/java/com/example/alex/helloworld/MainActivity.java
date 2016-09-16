@@ -239,6 +239,13 @@ public class MainActivity extends AppCompatActivity {
         // Background method. Query site information
         @Override
         protected List<Site> doInBackground(Void... arg0) {
+            // Reset number of queries where applicable
+            for (APIKey key : apiKeys){
+                if (System.currentTimeMillis() - key.LastQueryTimeMilliseconds >= SECONDS_IN_A_MINUTE){
+                    key.NumQueries = 0;
+                }
+            }
+
             List<Site> sites = new ArrayList<Site>();
             for (String site : sitesAll) {
                 // Pause execution for a minute once we reach 10 queries.
