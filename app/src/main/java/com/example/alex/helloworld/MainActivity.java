@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         apiKeys.add(0, new APIKey(apiKeyOne));
         apiKeys.add(1, new APIKey(apiKeyTwo));
         apiKeys.add(2, new APIKey(apiKeyThree));
+        Log.d("APIKEYSLOADED", Integer.toString(apiKeys.size()));
 
         // Set up Spinner
         spinner = (Spinner) findViewById(R.id.day_spinner);
@@ -243,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
             for (APIKey key : apiKeys){
                 if (System.currentTimeMillis() - key.LastQueryTimeMilliseconds >= SECONDS_IN_A_MINUTE){
                     key.NumQueries = 0;
+                    Log.d("RESETQUERIESBACKGROUND", key.APIKey);
                 }
             }
 
@@ -260,6 +262,8 @@ public class MainActivity extends AppCompatActivity {
                                     apiKeys.get(i).NumQueries < MAX_QUERIES_IN_A_MINUTE){
                                 sleep = false;
                                 currentKeyIndex = i;
+                                Log.d("NOSLEEPFOR", apiKeys.get(i).APIKey);
+                                break;
                             }
                         }
 
@@ -278,12 +282,15 @@ public class MainActivity extends AppCompatActivity {
                     else if (timeDifferenceBetweenQueries >= SECONDS_IN_A_MINUTE){
                         // Reset the number of queries for the current API key
                         apiKeys.get(currentKeyIndex).NumQueries = 0;
+                        Log.d("ELSEIFRESETQUERIES", apiKeys.get(currentKeyIndex).APIKey);
                     }
                 }
                 catch (InterruptedException e){
                     e.printStackTrace();
                     return null;
                 }
+
+                Log.d("QUERYKEY", apiKeys.get(currentKeyIndex).APIKey);
 
                 // Query the weather underground for site information. Increment counter
                 Log.d("NUMQUERIESBEFOREQUERY", Integer.toString(apiKeys.get(currentKeyIndex).NumQueries));

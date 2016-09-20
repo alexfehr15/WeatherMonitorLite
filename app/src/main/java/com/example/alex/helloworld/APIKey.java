@@ -15,6 +15,6 @@ public class APIKey {
     public APIKey(String apiKey){
         APIKey = apiKey;
         NumQueries = 0;
-        LastQueryTimeMilliseconds = Long.MAX_VALUE;
+        LastQueryTimeMilliseconds = Long.MIN_VALUE;
     }
 }
